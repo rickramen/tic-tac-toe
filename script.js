@@ -23,15 +23,18 @@ const Gameboard = (() => {
     return { getBoard, updateBoard, resetBoard };
 })();
 
-// Get the player name and marker (X or O)
-const Player = (name, marker) => {
-    return { name, marker };
-};
 
+// Controls state of game
 const GameController = (() => {
+    const Player = (name, marker) => {
+        return { name, marker };
+    };
+    
     const player1 = Player('Player 1', 'X');
     const player2 = Player('Player 2', 'O');
     let currentPlayer = player1;
+
+    const getCurrentPlayer = () => currentPlayer;
 
     // Switch between P1 and P2
     const switchTurn = () => {
@@ -41,26 +44,17 @@ const GameController = (() => {
     // Play a round of the game
     const playRound = (index) => {
         if (Gameboard.updateBoard(index, currentPlayer.marker)) {
-            displayBoard();
+            ScreenController.updateBoard();
             if (checkWinner()) {
-                console.log(`${currentPlayer.name} wins!`);
+                ScreenController.displayWinner(currentPlayer.name); 
             } else {
                 switchTurn();
+                ScreenController.updateTurn(currentPlayer.name);
             }
         } else {
-            console.log("Cell is already taken. Try again!");
+            alert("Cell is already taken. Try again!");
         }
     };
-
-    // Console output of the gameboard
-    const displayBoard = () => {
-        const board = Gameboard.getBoard();
-        console.log(`${board[0] || '-'} | ${board[1] || '-'} | ${board[2] || '-'}`);
-        console.log(`${board[3] || '-'} | ${board[4] || '-'} | ${board[5] || '-'}`);
-        console.log(`${board[6] || '-'} | ${board[7] || '-'} | ${board[8] || '-'}`);
-        console.log(''); // Add empty line for spacing
-    };
-
 
     // Check for winner
     const checkWinner = () => {
@@ -82,14 +76,51 @@ const GameController = (() => {
     const resetGame = () => {
         Gameboard.resetBoard();
         currentPlayer = player1;
+        ScreenController.updateTurn(currentPlayer.name); 
+        ScreenController.updateBoard(); 
     };
 
-    return { playRound, resetGame };
+    return { playRound, resetGame, getCurrentPlayer };
 })();
 
-// Console game test
-GameController.playRound(0); // Player 1 places an X
-GameController.playRound(1); // Player 2 places an O
-GameController.playRound(3); // Player 1 places an X
-GameController.playRound(2); // Player 2 places an O
-GameController.playRound(6); // Player 1 places an X
+// Handles updates to the game UI
+const ScreenController = (() => {
+    const playerTurnDiv = document.querySelector('.turn');
+    const boardDiv = document.querySelector('.gameboard');
+    const resetButton = document.getElementById('reset-btn');
+
+    const updateBoard = () => {
+        const board = Gameboard.getBoard();
+        const cells = document.querySelectorAll('.cell');
+        cells.forEach((cell, index) => {
+            cell.textContent = board[index] || '';
+        });
+    };
+
+    const updateTurn = (playerName) => {
+        playerTurnDiv.textContent = `${playerName}'s turn`;
+    };
+
+    const displayWinner = (playerName) => {
+        playerTurnDiv.textContent = `${playerName} wins!`;
+    };
+
+    const clickHandlerBoard = (e) => {
+        const index = e.target.dataset.index;
+        if (index) {
+            GameController.playRound(index);
+        }
+    };
+
+    // Set Initial Display
+    const init = () => {
+        boardDiv.addEventListener('click', clickHandlerBoard);
+        resetButton.addEventListener('click', GameController.resetGame);
+        updateTurn(GameController.getCurrentPlayer().name); 
+        updateBoard();
+    };
+
+    return { init, updateBoard, updateTurn, displayWinner };
+})();
+
+ScreenController.init();
