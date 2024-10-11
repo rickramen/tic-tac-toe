@@ -1,4 +1,3 @@
-// Gameboard created in singleton pattern.
 
 const Gameboard = (() => {
     const board = Array(9).fill(null); // empty 3x3 grid
@@ -33,6 +32,7 @@ const GameController = (() => {
     const player1 = Player('Player 1', 'X');
     const player2 = Player('Player 2', 'O');
     let currentPlayer = player1;
+    let hasWinner = false;
 
     const getCurrentPlayer = () => currentPlayer;
 
@@ -43,14 +43,17 @@ const GameController = (() => {
 
     // Play a round of the game
     const playRound = (index) => {
-        if (Gameboard.updateBoard(index, currentPlayer.marker)) {
+        if (!hasWinner && Gameboard.updateBoard(index, currentPlayer.marker)) {
             ScreenController.updateBoard();
             if (checkWinner()) {
+                hasWinner = true;
                 ScreenController.displayWinner(currentPlayer.name); 
             } else {
                 switchTurn();
                 ScreenController.updateTurn(currentPlayer.name);
             }
+        } else if (hasWinner){
+            alert("Game is over! Reset to play again.")
         } else {
             alert("Cell is already taken. Try again!");
         }
@@ -76,6 +79,7 @@ const GameController = (() => {
     const resetGame = () => {
         Gameboard.resetBoard();
         currentPlayer = player1;
+        hasWinner = false;
         ScreenController.updateTurn(currentPlayer.name); 
         ScreenController.updateBoard(); 
     };
