@@ -11,10 +11,22 @@
         <h1>Tic-Tac-Toe</h1>
     </header>
 
-    <div class="game-container">
-      
-        <div class="turn">filler turn text</div>
+    <!-- To enter Player names -->
+    <div id="player-modal" class="modal">
+        <div class="modal-content">
+            <h2>Enter Player Names</h2>
+            <label for="player1-name">Player 1 (X):</label>
+            <input type="text" id="player1-name" value="Player 1" required>
+            <label for="player2-name">Player 2 (O):</label>
+            <input type="text" id="player2-name" value="Player 2" required>
+            <div>
+                <button id="start-game-btn">Start Game</button>
+            </div>
+        </div>
+    </div>
 
+    <div class="game-container">
+        <div class="turn">[Select Player Names]</div>
         <div class="gameboard">
             <div class="cell" data-index="0"></div>
             <div class="cell" data-index="1"></div>
@@ -29,8 +41,6 @@
     </div>
 
     <button id="reset-btn">Reset Game</button>
-
-    
 
     <script src="script.js"></script>
 </body>

@@ -29,10 +29,15 @@ const GameController = (() => {
         return { name, marker };
     };
     
-    const player1 = Player('Player 1', 'X');
-    const player2 = Player('Player 2', 'O');
+    let player1, player2;
     let currentPlayer = player1;
-    let hasWinner = false;
+    let gameWon = false;
+
+    const setPlayers = (name1, name2) => {
+        player1 = Player(name1, 'X');
+        player2 = Player(name2, 'O');
+        currentPlayer = player1;
+    };
 
     const getCurrentPlayer = () => currentPlayer;
 
@@ -43,20 +48,21 @@ const GameController = (() => {
 
     // Play a round of the game
     const playRound = (index) => {
-        if (!hasWinner && Gameboard.updateBoard(index, currentPlayer.marker)) {
+        if (!gameWon && Gameboard.updateBoard(index, currentPlayer.marker)) {
             ScreenController.updateBoard();
             if (checkWinner()) {
-                hasWinner = true;
+                gameWon = true;
                 ScreenController.displayWinner(currentPlayer.name); 
-            } else {
+            } else if (checkDraw()) {  
+                gameWon = true;
+                ScreenController.displayDraw();
+            }else {
                 switchTurn();
                 ScreenController.updateTurn(currentPlayer.name);
             }
-        } else if (hasWinner){
+        } else if (gameWon){
             alert("Game is over! Reset to play again.")
-        } else {
-            alert("Cell is already taken. Try again!");
-        }
+        } 
     };
 
     // Check for winner
@@ -75,16 +81,22 @@ const GameController = (() => {
         });
     };
 
+    // checks for draw for when gameboard is full
+    const checkDraw = () => {
+        return Gameboard.getBoard().every(cell => cell !== null);
+    };
+
     // Reset the game
     const resetGame = () => {
         Gameboard.resetBoard();
         currentPlayer = player1;
-        hasWinner = false;
-        ScreenController.updateTurn(currentPlayer.name); 
+        gameWon = false;
+        ScreenController.updateTurn("[Select Player Names]"); 
         ScreenController.updateBoard(); 
+        ScreenController.showPlayerModal(); 
     };
 
-    return { playRound, resetGame, getCurrentPlayer };
+    return { playRound, resetGame, setPlayers, getCurrentPlayer };
 })();
 
 // Handles updates to the game UI
@@ -92,6 +104,8 @@ const ScreenController = (() => {
     const playerTurnDiv = document.querySelector('.turn');
     const boardDiv = document.querySelector('.gameboard');
     const resetButton = document.getElementById('reset-btn');
+    const modal = document.getElementById('player-modal');
+    const startButton = document.getElementById('start-game-btn');
 
     const updateBoard = () => {
         const board = Gameboard.getBoard();
@@ -109,6 +123,16 @@ const ScreenController = (() => {
         playerTurnDiv.textContent = `${playerName} wins!`;
     };
 
+    const displayDraw = () => {
+        playerTurnDiv.textContent = "It's a draw!";
+    };
+
+    const showPlayerModal = () => {
+        modal.style.display = 'flex'; 
+        document.getElementById('player1-name').value = 'Player 1';
+        document.getElementById('player2-name').value = 'Player 2'; 
+    };
+
     const clickHandlerBoard = (e) => {
         const index = e.target.dataset.index;
         if (index) {
@@ -118,13 +142,27 @@ const ScreenController = (() => {
 
     // Set Initial Display
     const init = () => {
+
+        // Start the game when player names are added
+        startButton.addEventListener('click', () => {
+            const player1Name = document.getElementById('player1-name').value;
+            const player2Name = document.getElementById('player2-name').value;
+
+            if (player1Name && player2Name) {
+                GameController.setPlayers(player1Name, player2Name);
+                updateTurn(GameController.getCurrentPlayer().name);
+                modal.style.display = 'none'; 
+            } else {
+                alert('Please enter names for both players.');
+            }
+        });
+
         boardDiv.addEventListener('click', clickHandlerBoard);
         resetButton.addEventListener('click', GameController.resetGame);
-        updateTurn(GameController.getCurrentPlayer().name); 
         updateBoard();
     };
 
-    return { init, updateBoard, updateTurn, displayWinner };
+    return { init, updateBoard, updateTurn, displayWinner, displayDraw, showPlayerModal };
 })();
 
 ScreenController.init();
