@@ -65,14 +65,14 @@ const GameController = (() => {
         } 
     };
 
+    const winConditions = [
+        [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
+        [0, 3, 6], [1, 4, 7], [2, 5, 8], // columns
+        [0, 4, 8], [2, 4, 6]             // diagonals
+    ];
+
     // Check for winner
     const checkWinner = () => {
-        const winConditions = [
-            [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
-            [0, 3, 6], [1, 4, 7], [2, 5, 8], // columns
-            [0, 4, 8], [2, 4, 6]             // diagonals
-        ];
-
         return winConditions.some(condition => {
             const [a, b, c] = condition;
             return Gameboard.getBoard()[a] &&
@@ -111,20 +111,41 @@ const ScreenController = (() => {
         const board = Gameboard.getBoard();
         const cells = document.querySelectorAll('.cell');
         cells.forEach((cell, index) => {
-            cell.textContent = board[index] || '';
+            if (cell.textContent !== board[index]) {
+                cell.textContent = board[index] || ''; // Set cell text
+                if (board[index] === 'X') {
+                    cell.style.color = 'blue';  // Player 1 (X) is blue
+                } else if (board[index] === 'O') {
+                    cell.style.color = 'red';   // Player 2 (O) is red
+                } else {
+                    cell.style.color = '';      // Reset color for empty cells
+                }
+            }
         });
     };
+    
 
+    const setPlayerTurnColor = () => {
+        if (GameController.getCurrentPlayer().marker === 'X') {
+            playerTurnDiv.style.color = 'blue';
+        } else {
+            playerTurnDiv.style.color = 'red';
+        }
+    };
+    
     const updateTurn = (playerName) => {
         playerTurnDiv.textContent = `${playerName}'s turn`;
+        setPlayerTurnColor();
     };
-
+    
     const displayWinner = (playerName) => {
         playerTurnDiv.textContent = `${playerName} wins!`;
+        setPlayerTurnColor();
     };
 
     const displayDraw = () => {
         playerTurnDiv.textContent = "It's a draw!";
+        playerTurnDiv.style.color = 'black';  
     };
 
     const showPlayerModal = () => {
